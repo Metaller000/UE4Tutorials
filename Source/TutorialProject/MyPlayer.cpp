@@ -1,29 +1,35 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "TutorialProject.h"
 #include "MyPlayer.h"
+#include "InteractableActor.h"
 
 
-// Sets default values
+// Задаёт переменные по умалчанию
 AMyPlayer::AMyPlayer() {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    // Задаём этот параметр для вызова Tick() на каждом кадре.
+    // Мажно выключить для увелечения производительности, если параметр не нужен.
 	PrimaryActorTick.bCanEverTick = true;
 
+    TraceParams = FCollisionQueryParams(FName(TEXT("TraceParams")), false, this);
+    TraceParams.bTraceComplex = false;
+    TraceParams.bTraceAsyncScene = false;
+    TraceParams.bReturnPhysicalMaterial = false;
 }
 
 // Called when the game starts or when spawned
 void AMyPlayer::BeginPlay() {
 	Super::BeginPlay();
-
 }
 
-// Called every frame
+// Вызывается на каждом кадре
 void AMyPlayer::Tick( float DeltaTime ) {
 	Super::Tick( DeltaTime );
 
+    if(Controller && Controller->IsLocalController()){
+        HandleHighLight();
+    }
 }
 
-// Called to bind functionality to input
+// Вызывается при создании функциональности для input
 void AMyPlayer::SetupPlayerInputComponent(class UInputComponent* InputComponent) {
 	Super::SetupPlayerInputComponent(InputComponent);
 
@@ -56,4 +62,47 @@ void AMyPlayer::LookPitch(float val){
 }
 
 void AMyPlayer::Use(){
+    AInteractableActor* Interactable = FindFocusedActor();
+    if(Interactable){
+        Interactable->OnInteract(this);
+    }
+}
+
+AInteractableActor* AMyPlayer::FindFocusedActor(){
+    if(!Controller){
+        return nullptr;
+    }
+
+    FVector Location;
+    FRotator Rotation;
+    FHitResult Hit(ForceInit);
+    Controller->GetPlayerViewPoint(Location, Rotation);
+
+    FVector Start = Location;
+    FVector End = Start + (Rotation.Vector() * InteractionDistence);
+
+    GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Camera, TraceParams);
+
+    if(Hit.bBlockingHit){
+        AInteractableActor* MyCastActor = Cast<AInteractableActor>(Hit.GetActor());
+        if(MyCastActor){
+            return MyCastActor;
+        }
+    }
+    return nullptr;
+}
+
+void AMyPlayer::HandleHighLight(){
+    AInteractableActor* NewHighLight = FindFocusedActor();
+
+    if(NewHighLight){
+        if(NewHighLight != FocusedActor){
+            if (FocusedActor) FocusedActor->OnEndFocus();
+            NewHighLight->OnBeginFocus();
+            FocusedActor = NewHighLight;
+        }
+    }else{
+        if (FocusedActor) FocusedActor->OnEndFocus();
+        FocusedActor = nullptr;
+    }
 }
