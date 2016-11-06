@@ -15,9 +15,11 @@ AMyPlayer::AMyPlayer() {
     TraceParams.bReturnPhysicalMaterial = false;
 }
 
-// Called when the game starts or when spawned
+// Вызывается при старте игры или появлении персонажа
 void AMyPlayer::BeginPlay() {
 	Super::BeginPlay();
+
+    HealthPoints = MaxHealthPoints;
 }
 
 // Вызывается на каждом кадре
@@ -26,6 +28,7 @@ void AMyPlayer::Tick( float DeltaTime ) {
 
     if(Controller && Controller->IsLocalController()){
         HandleHighLight();
+        GEngine->AddOnScreenDebugMessage(0, DeltaTime, FColor::Red, FString::Printf(TEXT("HP: %f"), HealthPoints));
     }
 }
 
@@ -105,4 +108,20 @@ void AMyPlayer::HandleHighLight(){
         if (FocusedActor) FocusedActor->OnEndFocus();
         FocusedActor = nullptr;
     }
+}
+
+float AMyPlayer::TakeDamage (float DamageAmount, struct FDamageEvent const & DamageEvent, class AController* EventInstigator, AActor* DamageCauser){
+    float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+    HealthPoints = HealthPoints - ActualDamage;
+    if(HealthPoints <= 0){
+        OnDeath();
+    }
+    return ActualDamage;
+}
+
+// Действие(я) при смерти
+void AMyPlayer::OnDeath(){
+    UE_LOG(LogTemp, Warning, TEXT("Ты умер!"));
+    Destroy();
 }

@@ -17,6 +17,7 @@ void AInteractableActor::BeginPlay(){
         UMeshComponent* thisMesh = Cast<UMeshComponent>(Mesh);
         if(thisMesh){
             Meshes.Push(thisMesh);
+            thisMesh->SetCustomDepthStencilValue((uint8)Color);
         }
     }
 }
@@ -38,7 +39,6 @@ void AInteractableActor::OnBeginFocus(){
     if(bCanInteract){
         for(UMeshComponent* Mesh : Meshes){
             Mesh->SetRenderCustomDepth(true);
-            Mesh->SetCustomDepthStencilValue((uint8)Color);
         }
     }
 }

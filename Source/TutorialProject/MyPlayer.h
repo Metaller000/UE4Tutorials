@@ -11,7 +11,7 @@ public:
 	// Sets default values for this character's properties
 	AMyPlayer();
 
-    //input
+    // инпуты
     void MoveForward(float val);
     void MoveRight(float val);
     void LookYaw(float val);
@@ -20,6 +20,7 @@ public:
 
     class AInteractableActor* FindFocusedActor();
     void HandleHighLight();
+    void OnDeath();
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -27,10 +28,15 @@ public:
 	virtual void Tick( float DeltaSeconds ) override;
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
+    virtual float TakeDamage (float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
 
 private:
     UPROPERTY(EditDefaultsOnly)
     float InteractionDistence = 300.f;
+    UPROPERTY(EditDefaultsOnly)
+    float MaxHealthPoints = 100.f;
+
+    float HealthPoints;
 
     AInteractableActor* FocusedActor;
     FCollisionQueryParams TraceParams;
