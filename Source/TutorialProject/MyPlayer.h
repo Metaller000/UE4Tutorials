@@ -21,6 +21,7 @@ public:
     class AInteractableActor* FindFocusedActor();
     void HandleHighLight();
     void OnDeath();
+    void Heal(float Amount);
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -36,6 +37,7 @@ private:
     UPROPERTY(EditDefaultsOnly)
     float MaxHealthPoints = 100.f;
 
+    UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess="true"), Category = Health)
     float HealthPoints;
 
     AInteractableActor* FocusedActor;

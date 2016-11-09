@@ -125,3 +125,9 @@ void AMyPlayer::OnDeath(){
     UE_LOG(LogTemp, Warning, TEXT("Ты умер!"));
     Destroy();
 }
+
+void AMyPlayer::Heal(float Amount){
+    if (Amount > 0){
+        HealthPoints = HealthPoints + Amount;
+    }
+}
