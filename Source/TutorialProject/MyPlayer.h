@@ -17,6 +17,8 @@ public:
     void LookYaw(float val);
     void LookPitch(float val);
     void Use();
+    void StartRun();
+    void StopRun();
 
     class AInteractableActor* FindFocusedActor();
     void HandleHighLight();
@@ -31,14 +33,27 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
     virtual float TakeDamage (float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
 
+protected:
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess="true"))
+    UCameraComponent* PlayerCamera;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess="true"))
+    USpringArmComponent* CameraBoom;
+
 private:
     UPROPERTY(EditDefaultsOnly)
     float InteractionDistence = 300.f;
     UPROPERTY(EditDefaultsOnly)
     float MaxHealthPoints = 100.f;
+    UPROPERTY(EditDefaultsOnly)
+    float WalkSpeed = 400.f;
+    UPROPERTY(EditDefaultsOnly)
+    float RunSpeed = 800.f;
+
 
     UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess="true"), Category = Health)
     float HealthPoints;
+
+    uint32 bIsRunning : 1;
 
     AInteractableActor* FocusedActor;
     FCollisionQueryParams TraceParams;

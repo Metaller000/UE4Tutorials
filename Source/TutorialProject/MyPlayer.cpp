@@ -13,6 +13,11 @@ AMyPlayer::AMyPlayer() {
     TraceParams.bTraceComplex = false;
     TraceParams.bTraceAsyncScene = false;
     TraceParams.bReturnPhysicalMaterial = false;
+
+    PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
+    CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+    CameraBoom->AttachTo(RootComponent);
+    PlayerCamera->AttachTo(CameraBoom);
 }
 
 // Вызывается при старте игры или появлении персонажа
@@ -41,18 +46,20 @@ void AMyPlayer::SetupPlayerInputComponent(class UInputComponent* InputComponent)
     InputComponent->BindAxis("LookYaw", this, &AMyPlayer::LookYaw);
     InputComponent->BindAxis("LookPitch", this, &AMyPlayer::LookPitch);
     InputComponent->BindAction("Use", IE_Pressed, this, &AMyPlayer::Use);
+    InputComponent->BindAction("Run", IE_Pressed, this, &AMyPlayer::StartRun);
+    InputComponent->BindAction("Run", IE_Released, this, &AMyPlayer::StopRun);
 }
 
 
 void AMyPlayer::MoveForward(float val){
     FRotator Rotation(0, GetActorRotation().Yaw, 0);
-    FVector Forward = FRotationMatrix(Rotation).GetScaledAxis(EAxis::X);
+    FVector Forward(1, 0, 0);  //= FRotationMatrix(Rotation).GetScaledAxis(EAxis::X);
     AddMovementInput(Forward, val);
 }
 
 void AMyPlayer::MoveRight(float val){
     FRotator Rotation(0, GetActorRotation().Yaw, 0);
-    FVector Right = FRotationMatrix(Rotation).GetScaledAxis(EAxis::Y);
+    FVector Right(0, 1, 0);  //= FRotationMatrix(Rotation).GetScaledAxis(EAxis::Y);
     AddMovementInput(Right, val);
 }
 
@@ -64,11 +71,22 @@ void AMyPlayer::LookPitch(float val){
     AddControllerPitchInput(val);
 }
 
+// Действия при использовании
 void AMyPlayer::Use(){
     AInteractableActor* Interactable = FindFocusedActor();
     if(Interactable){
         Interactable->OnInteract(this);
     }
+}
+
+void AMyPlayer::StartRun(){
+    bIsRunning = true;
+    GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+}
+
+void AMyPlayer::StopRun(){
+    bIsRunning = false;
+    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 AInteractableActor* AMyPlayer::FindFocusedActor(){
@@ -110,6 +128,7 @@ void AMyPlayer::HandleHighLight(){
     }
 }
 
+// Действия при повреждениях
 float AMyPlayer::TakeDamage (float DamageAmount, struct FDamageEvent const & DamageEvent, class AController* EventInstigator, AActor* DamageCauser){
     float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
@@ -126,6 +145,7 @@ void AMyPlayer::OnDeath(){
     Destroy();
 }
 
+// Действие при лечении
 void AMyPlayer::Heal(float Amount){
     if (Amount > 0){
         HealthPoints = HealthPoints + Amount;
